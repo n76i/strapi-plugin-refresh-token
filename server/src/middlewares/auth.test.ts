@@ -165,6 +165,49 @@ describe('Auth Middleware', () => {
     );
   });
 
+  it('should receive refreshToken if the rotation is enabled /api/auth/local/refresh', async () => {
+    strapiMock.config.get.mockReturnValueOnce({
+      ...strapiMock.config.get(),
+      refreshTokenRotation: true,
+    });
+    ctxMock.request = {
+      method: 'POST',
+      path: '/api/auth/local/refresh',
+      body: {
+        refreshToken: jwt.sign({ userId: 1, secret: 'testDocumentId' }, 'testSecretKey', {
+          expiresIn: '30d',
+        }),
+      },
+    };
+  
+    // Update ctxMock response to initialize it properly for the refresh scenario
+    ctxMock.response = {
+      body: {},
+      message: 'OK',
+    };
+  
+    // Mock the findOne method to return a valid token entry
+    strapiMock.query = jest.fn().mockReturnThis();
+    strapiMock.findOne = jest.fn().mockResolvedValue({
+      id: 1,
+      documentId: 'testDocumentId',
+    });
+  
+    // Mock the delete method to do nothing
+    strapiMock.delete = jest.fn().mockResolvedValue({});
+  
+    const middleware = auth({ strapi: strapiMock });
+  
+    await middleware(ctxMock, () => Promise.resolve());
+  
+    expect(ctxMock.send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        jwt: expect.any(String), // jwt should be returned in the response
+        refreshToken: expect.any(String), // refreshToken should be returned in the response
+      })
+    );
+  });
+
   it('should respond with 401 for invalid refresh token', async () => {
     ctxMock.request = {
       method: 'POST',
