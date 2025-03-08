@@ -5,21 +5,21 @@ interface JwtPayload {
   userId: number;
   secret: string;
 }
-function calculateMaxAge(param){
+function calculateMaxAge(param) {
   const unit = param.slice(-1); // Get the unit (d, h, m)
   const value = parseInt(param.slice(0, -1)); // Get the numerical value
 
   let maxAge;
 
   switch (unit) {
-    case 'd': 
-    maxAge =  1000 * 60 * 60 * 24 * value;
+    case 'd':
+      maxAge = 1000 * 60 * 60 * 24 * value;
       break;
     case 'h':
-      maxAge =  1000 * 60 * 60 * value;
+      maxAge = 1000 * 60 * 60 * value;
       break;
     case 'm':
-      maxAge =  1000 * 60 * value;
+      maxAge = 1000 * 60 * value;
       break;
     default:
       throw new Error('Invalid tokenExpires format. Use formats like "30d", "1h", "15m".');
@@ -72,12 +72,33 @@ function auth({ strapi }) {
             });
 
             if (data) {
-              ctx.send({
+              const responseBody: { jwt: any; refreshToken?: string } = {
                 jwt: strapi
                   .plugin('users-permissions')
                   .service('jwt')
                   .issue({ id: decoded.userId }),
-              });
+              };
+              if (config.refreshTokenRotation) {
+                await strapi.query('plugin::refresh-token.token').delete({
+                  where: { id: data.id },
+                });
+
+                const refreshEntry = await strapi
+                  .plugin(PLUGIN_ID)
+                  .service('service')
+                  .create({ id: decoded.userId }, ctx);
+                const newRefreshToken = jwt.sign(
+                  { userId: decoded.userId, secret: refreshEntry.documentId },
+                  config.refreshTokenSecret,
+                  {
+                    expiresIn: config.refreshTokenExpiresIn,
+                  }
+                );
+                if (newRefreshToken) {
+                  responseBody.refreshToken = newRefreshToken;
+                }
+              }
+              ctx.send(responseBody);
             } else {
               ctx.status = 401;
               ctx.response.body = { error: 'Invalid Token' };

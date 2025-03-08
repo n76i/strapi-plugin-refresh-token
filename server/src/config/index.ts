@@ -5,6 +5,7 @@ export default {
     requestRefreshOnAll : false,
     refreshTokenExpiresIn : '1d',
     cookieResponse: false,
+    refreshTokenRotation: false,
   },
   validator() {},
 };
