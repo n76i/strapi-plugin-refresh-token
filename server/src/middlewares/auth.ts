@@ -30,9 +30,12 @@ function calculateMaxAge(param) {
 function auth({ strapi }) {
   const config = strapi.config.get(`plugin::${PLUGIN_ID}`);
 
+  const authRoute = config.authRoute ?? '/api/auth/local'
+  const refreshRoute = config.refreshRoute ?? '/api/auth/local/refresh'
+
   return async (ctx, next) => {
     await next();
-    if (ctx.request.method === 'POST' && ctx.request.path === '/api/auth/local') {
+    if (ctx.request.method === 'POST' && ctx.request.path === authRoute) {
       const requestRefresh = ctx.request.body?.requestRefresh || config.requestRefreshOnAll;
       if (ctx.response.body && ctx.response.message === 'OK' && requestRefresh) {
         const refreshEntry = await strapi
@@ -61,7 +64,7 @@ function auth({ strapi }) {
           };
         }
       }
-    } else if (ctx.request.method === 'POST' && ctx.request.path === '/api/auth/local/refresh') {
+    } else if (ctx.request.method === 'POST' && ctx.request.path === refreshRoute) {
       const refreshToken = ctx.request.body?.refreshToken;
       if (refreshToken) {
         try {
