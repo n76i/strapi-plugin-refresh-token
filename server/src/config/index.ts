@@ -6,6 +6,8 @@ export default {
     refreshTokenExpiresIn : '1d',
     cookieResponse: false,
     refreshTokenRotation: false,
+    refreshRoute: undefined,
+    authRoute: undefined
   },
   validator() {},
 };
