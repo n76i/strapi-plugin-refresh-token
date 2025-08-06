@@ -30,8 +30,8 @@ function calculateMaxAge(param) {
 function auth({ strapi }) {
   const config = strapi.config.get(`plugin::${PLUGIN_ID}`);
 
-  const authRoute = config.authRoute ?? '/api/auth/local'
-  const refreshRoute = config.refreshRoute ?? '/api/auth/local/refresh'
+  const authRoute = config.authRoute ?? '/api/wrapped/auth/login'
+  const refreshRoute = config.refreshRoute ?? '/api/wrapped/auth/refresh'
 
   return async (ctx, next) => {
     await next();
