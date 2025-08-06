@@ -27,4 +27,4 @@ export default {
   contentTypes,
   policies,
   middlewares,
-};
+} as { [key: string]: any };;
