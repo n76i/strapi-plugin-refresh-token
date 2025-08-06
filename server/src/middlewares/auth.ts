@@ -31,19 +31,20 @@ function auth({ strapi }) {
   const config = strapi.config.get(`plugin::${PLUGIN_ID}`);
 
   const authRoute = config.authRoute ?? '/api/wrapped/auth/login'
+  const registerRoute = config.authRoute ?? '/api/wrapped/auth/register'
   const refreshRoute = config.refreshRoute ?? '/api/wrapped/auth/refresh'
 
   return async (ctx, next) => {
     await next();
-    if (ctx.request.method === 'POST' && ctx.request.path === authRoute) {
+    if (ctx.request.method === 'POST' && (ctx.request.path === authRoute || ctx.request.path == registerRoute)) {
       const requestRefresh = ctx.request.body?.requestRefresh || config.requestRefreshOnAll;
       if (ctx.response.body && ctx.response.message === 'OK' && requestRefresh) {
         const refreshEntry = await strapi
           .plugin(PLUGIN_ID)
           .service('service')
-          .create(ctx.response.body?.user, ctx);
+          .create(ctx.response.body?.data?.user, ctx);
         const refreshToken = jwt.sign(
-          { userId: ctx.response.body?.user?.id, secret: refreshEntry.documentId },
+          { userId: ctx.response.body?.data?.user?.id, secret: refreshEntry.documentId },
           config.refreshTokenSecret,
           {
             expiresIn: config.refreshTokenExpiresIn,
@@ -60,7 +61,10 @@ function auth({ strapi }) {
         } else {
           ctx.response.body = {
             ...ctx.response.body,
-            refreshToken: refreshToken,
+            data: {
+              ...ctx.response.body.data,
+              refreshToken: refreshToken,
+            },
           };
         }
       }
@@ -75,11 +79,14 @@ function auth({ strapi }) {
             });
 
             if (data) {
-              const responseBody: { jwt: any; refreshToken?: string } = {
-                jwt: strapi
-                  .plugin('users-permissions')
-                  .service('jwt')
-                  .issue({ id: decoded.userId }),
+              const responseBody: { data: { accessToken: any; refreshToken?: string }, message: string } = {
+                message: 'Refresh token success',
+                data: {
+                  accessToken: strapi
+                    .plugin('users-permissions')
+                    .service('jwt')
+                    .issue({ id: decoded.userId }),
+                }
               };
               if (config.refreshTokenRotation) {
                 await strapi.query('plugin::refresh-token.token').delete({
@@ -98,7 +105,7 @@ function auth({ strapi }) {
                   }
                 );
                 if (newRefreshToken) {
-                  responseBody.refreshToken = newRefreshToken;
+                  responseBody.data.refreshToken = newRefreshToken;
                 }
               }
               ctx.send(responseBody);
