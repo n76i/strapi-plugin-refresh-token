@@ -1,15 +1,19 @@
 {
-  "name": "@redon2inc/strapi-plugin-refresh-token",
+  "name": "strapi-plugin-jwt",
   "description": "Plugin for Strapi 5 to provide refresh token functionality.",
   "license": "MIT",
-  "author": "Redon2 Soltuons <info@redon2.ca>",
+  "author": "Fork from Redon2 Soltuons <info@redon2.ca>",
   "repository": {
-    "url": "git+https://github.com/redon2/strapi-plugin-refresh-token.git",
+    "url": "git+https://github.com/n76i/strapi-plugin-jwt.git",
     "type": "git",
     "directory": "."
   },
-  "version": "0.1.4",
-  "keywords": [],
+  "version": "0.1.5",
+  "keywords": [
+    "strapi",
+    "plugin",
+    "jwt"
+  ],
   "type": "commonjs",
   "exports": {
     "./package.json": "./package.json",

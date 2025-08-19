@@ -15,11 +15,11 @@ Strapi Plugin that extends the local authorization functionality to provide Refr
 To install the Strapi Refresh Token Plugin, simply run one of the following command:
 
 ```
-npm install @redon2inc/strapi-plugin-refresh-token
+npm install strapi-plugin-jwt
 ```
 
 ```
-yarn add @redon2inc/strapi-plugin-refresh-token
+yarn add strapi-plugin-jwt
 ```
 
 ## Config
