@@ -8541,12 +8541,26 @@ function auth({ strapi }) {
               ctx.send(responseBody);
             } else {
               ctx.status = 401;
-              ctx.response.body = { error: "Invalid Token" };
+              ctx.response.body = {
+                error: {
+                  status: 401,
+                  name: "ValidationError",
+                  message: "Invalid Token",
+                  detail: {}
+                }
+              };
             }
           }
         } catch (err) {
           ctx.status = 401;
-          ctx.response.body = { error: "Invalid Token" };
+          ctx.response.body = {
+            error: {
+              status: 401,
+              name: "ValidationError",
+              message: "Invalid Token",
+              detail: {}
+            }
+          };
         }
       }
     }
